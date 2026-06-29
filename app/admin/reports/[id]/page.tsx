@@ -12,6 +12,11 @@ import {
   Eye,
   Edit3,
   Trash2,
+  Printer,
+  Mail,
+  Phone,
+  IdCard,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/reports/StatusBadge";
@@ -20,7 +25,7 @@ import { Map } from "@/components/shared/Map";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { Separator } from "@/components/ui/separator";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +35,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { StatusUpdateForm } from "@/components/admin/StatusUpdateForm";
+import { PrintConfigModal } from "@/components/reports/PrintConfigModal";
 import { api } from "@/lib/api";
 import type { Report } from "@/lib/types";
 import { CATEGORY_LABELS } from "@/lib/types";
@@ -47,6 +53,7 @@ export default function AdminReportDetailPage({
   const [error, setError] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
 
   const fetchReport = () => {
     setLoading(true);
@@ -121,7 +128,7 @@ export default function AdminReportDetailPage({
                 {CATEGORY_LABELS[report.category]}
               </span>
               <span className="text-xs font-mono text-muted-foreground ml-auto">
-                #{report.report_id}
+                Report ID: #{report.report_id}
               </span>
             </div>
             <h1 className="text-2xl font-bold font-heading">{report.title}</h1>
@@ -140,7 +147,7 @@ export default function AdminReportDetailPage({
 
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <User className="h-4 w-4" /> User #{report.user_id}
+              <User className="h-4 w-4" /> {report.reporter_first_name || `User #${report.user_id}`} {report.reporter_first_name ? report.reporter_last_name : ""}
             </span>
             <span className="flex items-center gap-1.5">
               <MapPin className="h-4 w-4" /> {report.latitude.toFixed(4)},{" "}
@@ -158,8 +165,23 @@ export default function AdminReportDetailPage({
             </span>
           </div>
 
+          {report.duplicate_of && (
+            <p className="text-sm text-orange-600 flex items-center gap-1.5">
+              <ExternalLink className="h-4 w-4" />
+              Duplicate of:{" "}
+              <Link
+                href={`/admin/reports/${report.duplicate_of}`}
+                className="underline underline-offset-2 hover:text-orange-800"
+              >
+                {report.duplicate_of_title || `Report #${report.duplicate_of}`}
+              </Link>
+              {report.duplicate_of_address && <> at {report.duplicate_of_address}</>}
+            </p>
+          )}
+
           <Separator />
-          <CommentSection reportId={report.report_id} />
+          <p>Report ID</p>
+          <CommentSection reportId= {report.report_id} />
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -178,6 +200,32 @@ export default function AdminReportDetailPage({
           {report.address && (
             <p className="text-xs text-muted-foreground">{report.address}</p>
           )}
+
+          <Card className="rounded-2xl border-border/50">
+            <CardHeader>
+              <CardTitle className="text-lg font-heading flex items-center gap-2">
+                <User className="h-4 w-4" /> Reporter Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <IdCard className="h-4 w-4 shrink-0" />
+                <span>User ID: {report.user_id}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span>{report.reporter_first_name || "—"} {report.reporter_last_name || ""}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="truncate">{report.reporter_email || "—"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span>{report.reporter_phone_number || "—"}</span>
+              </div>
+            </CardContent>
+          </Card>
 
           <StatusUpdateForm
             reportId={report.report_id}
@@ -199,6 +247,14 @@ export default function AdminReportDetailPage({
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setPrintOpen(true)}
+              className="rounded-full flex-1"
+            >
+              <Printer className="mr-1.5 h-4 w-4" /> Print
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setDeleteOpen(true)}
               className="rounded-full flex-1 text-destructive border-destructive/30 hover:bg-destructive/10"
             >
@@ -207,6 +263,8 @@ export default function AdminReportDetailPage({
           </div>
         </div>
       </div>
+
+      <PrintConfigModal reportId={report.report_id} isAdmin={true} open={printOpen} onOpenChange={setPrintOpen} />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="rounded-2xl max-w-sm">

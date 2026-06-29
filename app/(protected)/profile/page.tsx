@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { User, Mail, Phone, Award, Calendar, Lock, Save, Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { User, Mail, Phone, Award, Calendar, Lock, Save, Loader2, AlertCircle, CheckCircle, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +10,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { useAuth } from "@/contexts/AuthContext"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { api } from "@/lib/api"
@@ -25,13 +35,30 @@ function getBadge(score: number) {
 }
 
 export default function ProfilePage() {
-  const { user, refreshProfile } = useAuth()
+  const { user, refreshProfile, logout } = useAuth()
+  const router = useRouter()
   const [oldPassword, setOldPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [pwError, setPwError] = useState("")
   const [pwSuccess, setPwSuccess] = useState(false)
   const [pwLoading, setPwLoading] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState("")
+
+  const handleDeleteAccount = async () => {
+    setDeleteError("")
+    setDeleteLoading(true)
+    try {
+      await api.profile.deleteAccount()
+      logout()
+      router.push("/")
+    } catch (err: unknown) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete account")
+    }
+    setDeleteLoading(false)
+  }
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -167,6 +194,57 @@ export default function ProfilePage() {
                 <p className="text-sm text-muted-foreground">Toggle between light, dark, or system theme</p>
               </div>
               <ThemeToggle />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-destructive/30 border-2">
+          <CardHeader>
+            <CardTitle className="text-lg font-heading text-destructive flex items-center gap-2">
+              <Trash2 className="h-4 w-4" /> Danger Zone
+            </CardTitle>
+            <CardDescription>Irreversible actions for your account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Delete Account</p>
+                <p className="text-sm text-muted-foreground">
+                  Permanently deactivate your account and hide your profile
+                </p>
+              </div>
+              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogTrigger render={<Button variant="destructive" className="rounded-full shrink-0" />}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete Account
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Account</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete your account? Your account will be deactivated and your reports will no longer be publicly associated with you.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {deleteError && (
+                    <Alert variant="destructive" className="rounded-xl">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{deleteError}</AlertDescription>
+                    </Alert>
+                  )}
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteAccount}
+                      disabled={deleteLoading}
+                    >
+                      {deleteLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                      {deleteLoading ? "Deleting..." : "Delete My Account"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
         </Card>

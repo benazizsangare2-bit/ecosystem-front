@@ -1,5 +1,5 @@
 export type UserRole = "citizen" | "admin" | "authority";
-export type UserStatus = "active" | "suspended" | "banned";
+export type UserStatus = "active" | "suspended" | "banned" | "deleted";
 export type ReportCategory =
   | "illegal_dumping"
   | "overflowing_waste"
@@ -57,6 +57,7 @@ export interface User {
   reputation_score: number;
   total_reports: number;
   status: UserStatus;
+  deleted_at?: string | null;
   created_at: string;
 }
 
@@ -82,12 +83,19 @@ export interface Report {
   thumbnail_urls: string[];
   status: ReportStatus;
   duplicate_of: number | null;
+  duplicate_of_title: string | null;
+  duplicate_of_address: string | null;
   duplicate_warning: boolean;
   admin_notes: string | null;
   upvote_count: number;
   view_count: number;
   created_at: string;
   updated_at: string;
+  resolved_at?: string | null;
+  reporter_first_name: string;
+  reporter_last_name: string;
+  reporter_email: string;
+  reporter_phone_number: string;
 }
 
 export interface Comment {
@@ -128,6 +136,13 @@ export interface AdminStats {
   duplicate_warnings: number;
 }
 
+export interface AdminUserListResponse {
+  users: User[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
 export interface AuditLog {
   log_id: number;
   admin_id: number;
@@ -140,6 +155,81 @@ export interface AuditLog {
   ip_address: string;
   user_agent: string;
   created_at: string;
+}
+
+export interface SystemReportDateRange {
+  from: string;
+  to: string;
+}
+
+export interface SystemReportPerformance {
+  avg_resolution_time: number;
+  resolution_rate: number;
+  duplicate_rate: number;
+}
+
+export interface SystemReportChartPoint {
+  week: string;
+  total_reports: number;
+  investigating: number;
+  resolved: number;
+  rejected: number;
+  total_upvotes: number;
+}
+
+export interface SystemReportCategoryDistribution {
+  category: string;
+  count: number;
+  total_upvotes: number;
+}
+
+export interface SystemReportStatusDistribution {
+  status: string;
+  count: number;
+}
+
+export interface MonthlyTrend {
+  month: string;
+  total_reports: number;
+  resolved: number;
+  investigating: number;
+}
+
+export interface TopReporter {
+  user_id: number;
+  name: string;
+  report_count: number;
+}
+
+export interface SystemReportStats {
+  total_reports: number;
+  total_users: number;
+  total_upvotes: number;
+  duplicate_warnings: number;
+  avg_reports_per_user: number;
+  resolution_rate: number;
+  duplicate_rate: number;
+  avg_resolution_time: number;
+  recent_reports_7d: number;
+  by_status: Record<string, number>;
+  by_category: Record<string, number>;
+}
+
+export interface SystemReportResponse {
+  report: {
+    generated_at: string;
+    date_range: SystemReportDateRange;
+    reference_number: string;
+  };
+  statistics: SystemReportStats;
+  charts: {
+    weekly_trends: SystemReportChartPoint[];
+    category_distribution: SystemReportCategoryDistribution[];
+    status_distribution: SystemReportStatusDistribution[];
+    monthly_trends: MonthlyTrend[];
+  };
+  top_reporters: TopReporter[];
+  performance: SystemReportPerformance;
 }
 
 export interface AuditLogsResponse {
@@ -165,3 +255,60 @@ export interface ErrorEnvelope {
 }
 
 export type ApiResponse<T> = SuccessEnvelope<T> | ErrorEnvelope;
+
+// Printable report types
+export interface ReportHistory {
+  history_id: number;
+  report_id: number;
+  status: string;
+  changed_by: number | null;
+  changed_by_name: string;
+  notes: string;
+  created_at: string;
+}
+
+export interface Attachment {
+  attachment_id: number;
+  report_id: number;
+  file_name: string;
+  file_path: string;
+  file_type: string;
+  uploaded_at: string;
+}
+
+export interface WeeklyUpvote {
+  week: string;
+  upvotes: number;
+}
+
+export interface ReportStatistics {
+  age_in_days: number;
+  time_to_resolution_hours?: number;
+  upvote_trend?: WeeklyUpvote[];
+}
+
+export interface PrintableReport {
+  report: Report;
+  timeline: ReportHistory[];
+  statistics: ReportStatistics;
+  attachments: Attachment[];
+  generated_at: string;
+  reference_number: string;
+  case_number: string;
+  recipient?: string;
+  purpose?: string;
+  additional_notes?: string;
+}
+
+export interface PrintConfig {
+  recipient: string;
+  purpose: string;
+  additional_notes: string;
+  include_images: boolean;
+  include_statistics: boolean;
+  include_timeline: boolean;
+  include_admin_notes: boolean;
+  include_rejection_reason: boolean;
+  include_duplicate_info: boolean;
+  include_reporter_info: boolean;
+}

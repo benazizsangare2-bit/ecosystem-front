@@ -39,10 +39,10 @@ export default function DashboardPage() {
   const filtered = statusFilter === "all" ? reports : reports.filter((r) => r.status === statusFilter)
 
   const badgeLabel = (score: number) => {
-    if (score >= 501) return { label: "Hero", color: "text-amber-600" }
-    if (score >= 201) return { label: "Guardian", color: "text-emerald-600" }
-    if (score >= 51) return { label: "Contributor", color: "text-blue-600" }
-    return { label: "Newcomer", color: "text-gray-600" }
+    if (score >= 501) return { label: "Hero trust value", color: "text-amber-600" }
+    if (score >= 201) return { label: "Guardian trust value", color: "text-emerald-600" }
+    if (score >= 51) return { label: "Contributor trust value", color: "text-blue-600" }
+    return { label: "Newcomer trust value", color: "text-gray-600" }
   }
 
   const badge = badgeLabel(user?.reputation_score || 0)
@@ -81,7 +81,7 @@ export default function DashboardPage() {
         <Card className="rounded-2xl border-border/50">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="rounded-full bg-emerald-100 p-3"><Activity className="h-5 w-5 text-emerald-600" /></div>
-            <div><p className="text-2xl font-bold">{statusCounts.investigating}</p><p className="text-xs text-muted-foreground">Investigating</p></div>
+            <div><p className="text-2xl font-bold">{statusCounts.investigating}</p><p className="text-xs text-muted-foreground">Reports in Investigating</p></div>
           </CardContent>
         </Card>
         <Card className="rounded-2xl border-border/50">
@@ -96,7 +96,7 @@ export default function DashboardPage() {
         <Card className="rounded-2xl border-border/50">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="rounded-full bg-violet-100 p-3"><Award className="h-5 w-5 text-violet-600" /></div>
-            <div><p className="text-2xl font-bold">{statusCounts.resolved}</p><p className="text-xs text-muted-foreground">Resolved</p></div>
+            <div><p className="text-2xl font-bold">{statusCounts.resolved}</p><p className="text-xs text-muted-foreground">Resolved reports</p></div>
           </CardContent>
         </Card>
       </div>

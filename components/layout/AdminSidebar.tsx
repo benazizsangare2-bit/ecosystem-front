@@ -2,13 +2,15 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Leaf, LayoutDashboard, FileText, ScrollText, ArrowLeft, LogOut } from "lucide-react"
+import { Leaf, LayoutDashboard, FileText, ScrollText, Users, ArrowLeft, LogOut, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 
 const sidebarLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/reports", label: "Reports", icon: FileText },
+  { href: "/admin/system-report", label: "System Report", icon: BarChart3 },
+  { href: "/admin/reports", label: "Users Reports", icon: FileText },
+  { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
 ]
 

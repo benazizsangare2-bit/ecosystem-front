@@ -835,7 +835,7 @@ components:
 
     UserStatus:
       type: string
-      enum: [active, suspended, banned]
+      enum: [active, suspended, banned, deleted]
 
     ReportCategory:
       type: string
@@ -1013,6 +1013,14 @@ components:
         duplicate_of:
           type: integer
           nullable: true
+        duplicate_of_title:
+          type: string
+          nullable: true
+          description: Title of the original report if this is a duplicate
+        duplicate_of_address:
+          type: string
+          nullable: true
+          description: Address of the original report if this is a duplicate
         duplicate_warning:
           type: boolean
         admin_notes:
@@ -1028,6 +1036,19 @@ components:
         updated_at:
           type: string
           format: date-time
+        reporter_first_name:
+          type: string
+          description: First name of the report author
+        reporter_last_name:
+          type: string
+          description: Last name of the report author
+        reporter_email:
+          type: string
+          format: email
+          description: Email of the report author
+        reporter_phone_number:
+          type: string
+          description: Phone number of the report author
 
     ReportSummary:
       type: object

@@ -1,9 +1,11 @@
 import type {
   AdminStats,
+  AdminUserListResponse,
   AuditLogsResponse,
   Comment,
   CreateReportResponse,
   LoginResponse,
+  PrintableReport,
   PublicReportsPage,
   Report,
   User,
@@ -113,6 +115,11 @@ export const api = {
           headers: getAuthHeaders(),
         }).then(handleResponse<User>),
       ),
+    deleteAccount: () =>
+      fetch(`${BASE_URL}/api/profile`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      }).then(handleResponse<null>),
   },
 
   reports: {
@@ -176,6 +183,13 @@ export const api = {
         method: "POST",
         headers: getAuthHeaders(),
       }).then(handleResponse<{ liked: boolean; upvote_count: number }>),
+
+    getPrintable: (id: number) =>
+      dedupGet(`GET /api/reports/${id}/printable`, () =>
+        fetch(`${BASE_URL}/api/reports/${id}/printable`, {
+          headers: getAuthHeaders(),
+        }).then(handleResponse<PrintableReport>),
+      ),
   },
 
   admin: {
@@ -241,5 +255,52 @@ export const api = {
       fetch(`${BASE_URL}/api/admin/auditlogs/actions`, {
         headers: getAuthHeaders(),
       }).then(handleResponse<string[]>),
+
+    listUsers: (params?: { status?: string; page?: number; limit?: number }) => {
+      const search = new URLSearchParams()
+      if (params?.status) search.set("status", params.status)
+      if (params?.page) search.set("page", String(params.page))
+      if (params?.limit) search.set("limit", String(params.limit))
+      const qs = search.toString()
+      const url = `${BASE_URL}/api/admin/users${qs ? `?${qs}` : ""}`
+      return fetch(url, {
+        headers: getAuthHeaders(),
+      }).then(handleResponse<AdminUserListResponse>)
+    },
+
+    deleteUser: (id: number) =>
+      fetch(`${BASE_URL}/api/admin/users/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      }).then(handleResponse<null>),
+
+    getSystemReport: (params?: { from?: string; to?: string }) => {
+      const search = new URLSearchParams()
+      if (params?.from) search.set("from", params.from)
+      if (params?.to) search.set("to", params.to)
+      const qs = search.toString()
+      const url = `${BASE_URL}/api/admin/system-report${qs ? `?${qs}` : ""}`
+      return fetch(url, {
+        headers: getAuthHeaders(),
+      }).then(handleResponse<SystemReportResponse>)
+    },
+
+    downloadSystemReportPdf: (params?: { from?: string; to?: string }) => {
+      const search = new URLSearchParams()
+      if (params?.from) search.set("from", params.from)
+      if (params?.to) search.set("to", params.to)
+      const qs = search.toString()
+      const url = `${BASE_URL}/api/admin/system-report/pdf${qs ? `?${qs}` : ""}`
+      return fetch(url, {
+        headers: getAuthHeaders(),
+      }).then(async (res) => {
+        if (!res.ok) {
+          const body = await res.text().catch(() => "")
+          throw new Error(body || `HTTP ${res.status}`)
+        }
+        const blob = await res.blob()
+        return blob
+      })
+    },
   },
 }

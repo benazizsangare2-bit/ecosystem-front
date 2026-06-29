@@ -103,7 +103,16 @@ export default function MyReportDetailPage({ params }: { params: Promise<{ id: s
             </div>
             <h1 className="text-2xl md:text-3xl font-bold font-heading">{report.title}</h1>
             {report.duplicate_of && (
-              <p className="text-sm text-orange-600 mt-2">Marked as duplicate of report #{report.duplicate_of}</p>
+              <p className="text-sm text-orange-600 mt-2">
+                Duplicate of:{" "}
+                <Link
+                  href={`/reports/${report.duplicate_of}`}
+                  className="underline underline-offset-2 hover:text-orange-800"
+                >
+                  {report.duplicate_of_title || `Report #${report.duplicate_of}`}
+                </Link>
+                {report.duplicate_of_address && <> at {report.duplicate_of_address}</>}
+              </p>
             )}
             {report.admin_notes && (
               <div className="mt-4 rounded-xl bg-muted/30 p-4 border border-border/50">
